@@ -69,7 +69,7 @@ class QADataModule(pl.LightningDataModule):
         
         
         entity2text = []
-        with open(f"dataset/{self.args.dataset}/entity2text.txt") as file:
+        with open(f"./dataset/{self.args.dataset}/entity2text.txt") as file:
             for line in file.readlines():
                 line = line.strip().split("\t")[1]
                 entity2text.append(line)
@@ -121,7 +121,7 @@ class BaseKGCDataModule(pl.LightningDataModule):
         
         self.ent_freq = defaultdict(int)
         for mode in ["train"]:
-            with open(f"dataset/{self.args.dataset}/{mode}.tsv") as file:
+            with open(f"./dataset/{self.args.dataset}/{mode}.tsv") as file:
                 for line in file.readlines():
                     h, r, t = lmap(int,line.strip().split('\t'))
                     self.ent_freq[h] += 1
@@ -164,7 +164,7 @@ class BaseKGCDataModule(pl.LightningDataModule):
 
 
         for mode in ["train", "dev", "test"]:
-            with open(f"dataset/{self.args.dataset}/{mode}.tsv") as file:
+            with open(f"./dataset/{self.args.dataset}/{mode}.tsv") as file:
                 for line in file.readlines():
                     h, r, t = lmap(int,line.strip().split('\t'))
                     self.filter_hr_to_t[(h,r)].append(t)
@@ -178,7 +178,7 @@ class BaseKGCDataModule(pl.LightningDataModule):
         print("=== max filter ent {} ===".format(max_filter_ent))
         
         entity2text = []
-        with open(f"dataset/{self.args.dataset}/entity2text.txt") as file:
+        with open(f"./dataset/{self.args.dataset}/entity2text.txt") as file:
             for line in file.readlines():
                 line = line.strip().split("\t")[1]
                 entity2text.append(line)

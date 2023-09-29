@@ -706,7 +706,7 @@ class KGT5LitModel(BaseLitModel):
 
 
     def _init_model(self):
-        model = T5KBQAModel.from_pretrained(self.args.model_name_or_path)
+        model = T5KBQAModel.from_pretrained(self.args.model_name_or_path) #super general model for generation, so doesn't really matter
         if not self.args.use_ce_loss:
             model.loss_fn = SparseMax(10)
         return model
@@ -716,10 +716,20 @@ class KGT5LitModel(BaseLitModel):
 
     def training_step(self, batch, batch_idx):  # pylint: disable=unused-argument
         # batch.pop("filter_ent_ids")
-        bsz = batch['input_ids'].shape[0]
-        output = self.model(**batch)
+        bsz = batch['input_ids'].shape[0] #just the size, is 64 x 128
+        #print(bsz)
+        #we are going to do a few things
+        #first grab a new random sample, then we will make sure it's not the same one as what we want, since we removed the inverse
+        #then we will add a sample by finding the second pad and then showing it what we want. We need some way to separate the h,r,t of one from the other...
+        #then also need to adjust the mask, otherwise that could be bad
+        #the label and everything else remains the same!
+        #Have to ensure it doesn’t go over length, if it does truncate it or find a new one
+        #consider doing this for training/eval as well
+        output = self.model(**batch) #unravels the dicitonary, has input ids, attention mask, and labels
+        #equivalent to output = self.model(input_ids = batch['input_ids'], attention_mask = batch['attention_mask'], labels = batch['labels'])
         loss = output.loss
         # lm_logits = output.lm_logits
+        #i'll say that it's a bit confusing because seems like it should be a T5 model, but it is Bart from BartKGC which is self.model
 
 
         self.log("Train/loss", loss)
@@ -730,7 +740,9 @@ class KGT5LitModel(BaseLitModel):
         for d in batch_data:
             hr = d.hr
             idx = []
-            if d.inverse:
+            #This if statement is literally useless, the if and else are identical, let's see what it does in the data module filter tr to h.get
+            #I fixed it??? Wait this is more for filtering the entity trie, no wonder it has so many issues I guess
+            if d.inverse: 
                 for hh in self.trainer.datamodule.filter_tr_to_h.get(hr, []):
                     if hh in t_labels:
                         continue
@@ -763,8 +775,8 @@ class KGT5LitModel(BaseLitModel):
         batch,
         batch_idx,
     ):
-        labels = batch.pop("labels")
-        bsz = batch['input_ids'].shape[0]
+        labels = batch.pop("labels") #just gets labels which is a list of like 4 labels
+        bsz = batch['input_ids'].shape[0] #it's 4 here because that's the validation batch size
         
         if "batch_data" in batch:
             batch_data = batch.pop("batch_data")
@@ -910,7 +922,7 @@ class KGT5LitModel(BaseLitModel):
         return parser
 
 
-class KGBartLitModel(KGT5LitModel):
+class KGBartLitModel(KGT5LitModel): #this is the default that is called, see based on KGT5
 
     def __init__(self, args, tokenizer=None, **kwargs) -> None:
         super().__init__(args, tokenizer)

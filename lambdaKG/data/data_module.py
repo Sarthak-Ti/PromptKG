@@ -24,6 +24,7 @@ from .base_data_module import BaseKGCDataModule, QADataModule, BaseKGRECDataModu
 from .rec_processor import KGRECDataset, PretrainKGRECDataset
 from .utils import LinkGraph, Roberta_utils
 
+os.chdir('/userfs/lambdaKG/')
 
 ENTITY_PADDING_INDEX = 1
 
@@ -121,7 +122,9 @@ class KGT5DataModule(BaseKGCDataModule):
             r_input = self.relation2text[r]
 
             if inverse:
-                r_input = " [inverse] " + r_input
+                #we altered function to remove this line below, and basically forces it to reformat itself!
+                #r_input = " [inverse] " + r_input
+                h,t = t,h
 
             h_input = self.entity2text[h]
             # ! warning, hard coded
@@ -137,9 +140,9 @@ class KGT5DataModule(BaseKGCDataModule):
         outputs = [_[2] for _ in text]
         outputs_h = [_[3] for _ in text]
 
-        inputs_tokenized = self.tokenizer(inputs_h, inputs_r, padding='max_length', truncation="longest_first", max_length=self.args.max_seq_length, return_tensors="pt")
-        outputs_tokenized = self.tokenizer(outputs, padding='max_length', truncation=True, max_length=self.args.max_seq_length, return_tensors="pt")
-        outputs_h_entity_tokenized = self.tokenizer(outputs_h, padding='max_length', truncation=True, max_length=self.args.max_seq_length, return_tensors="pt")
+        inputs_tokenized = self.tokenizer(inputs_h, inputs_r, padding='max_length', truncation="longest_first", max_length=self.args.max_seq_length, return_tensors="pt") #throws error, so I added the return overflowing, but really just cuts down on the input if it's too long. #longest first cuts down on the description of entity
+        outputs_tokenized = self.tokenizer(outputs, padding='max_length', truncation=True, max_length=self.args.max_seq_length, return_tensors="pt") #just takes the raw outputs and tokenizes them
+        outputs_h_entity_tokenized = self.tokenizer(outputs_h, padding='max_length', truncation=True, max_length=self.args.max_seq_length, return_tensors="pt") #no clue what this does
         input_ids, attention_mask = inputs_tokenized.input_ids, inputs_tokenized.attention_mask
         labels, labels_attention_mask = outputs_tokenized.input_ids, outputs_tokenized.attention_mask
         # for labels, set -100 for padding
@@ -680,7 +683,7 @@ class KNNKGEPretrainDataModule(KNNKGEDataModule):
 
 
         for mode in ["train", "dev", "test"]:
-            with open(f"dataset/{self.args.dataset}/{mode}.tsv") as file:
+            with open(f"./dataset/{self.args.dataset}/{mode}.tsv") as file:
                 for line in file.readlines():
                     h, r, t = lmap(int,line.strip().split('\t'))
                     self.filter_hr_to_t[(h,r)].append(t)
@@ -692,7 +695,7 @@ class KNNKGEPretrainDataModule(KNNKGEDataModule):
         print("=== max filter ent {} ===".format(max_filter_ent))
         
         entity2text = []
-        with open(f"dataset/{self.args.dataset}/entity2text.txt") as file:
+        with open(f"./dataset/{self.args.dataset}/entity2text.txt") as file:
             for line in file.readlines():
                 line = line.strip().split("\t")[1]
                 entity2text.append(line)

@@ -114,7 +114,7 @@ class Trie(object):
 import os
 from tqdm import tqdm
 def get_trie(args, tokenizer):
-    path = os.path.join(f"dataset/{args.dataset}", "cached_trie.pkl")
+    path = os.path.join(f"./dataset/{args.dataset}", "cached_trie.pkl")
     # if not args.overwrite_cache and os.path.exists(path):
     #     print("loading trie")
     #     with open(path, "rb") as file:
@@ -128,7 +128,7 @@ def get_trie(args, tokenizer):
     #         return trie
     
     d = "entity2text.txt"
-    with open(f"dataset/{args.dataset}/{d}", "r") as file:
+    with open(f"./dataset/{args.dataset}/{d}", "r") as file:
         idx = 0
         total_entity_ids = [] 
         num_error_ids = 0
@@ -213,7 +213,7 @@ if __name__ == "__main__":
     model_name = "facebook/bart-base"
     tokenizer = AutoTokenizer.from_pretrained(model_name)
     dataset = "FB15k-237"
-    with open(f"../dataset/{dataset}/entity2text.txt", "r") as file:
+    with open(f"./dataset/{dataset}/entity2text.txt", "r") as file:
         idx = 0
         for line in file.readlines():
             entity_name = line.split("\t")[-1].strip()
